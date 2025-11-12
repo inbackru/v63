@@ -1,0 +1,102 @@
+modules = ["php-8.2", "web", "python-3.11", "nodejs-20", "postgresql-16"]
+run = "python main.py"
+
+[nix]
+channel = "stable-25_05"
+packages = ["chromedriver", "chromium", "fontconfig", "freetype", "geckodriver", "ghostscript", "gitFull", "glib", "glibcLocales", "harfbuzz", "lcms2", "libarchive", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "pango", "php", "playwright-driver", "postgresql", "tcl", "tk", "unrar", "xcodebuild", "zlib"]
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload --timeout 120 --workers 2 main:app"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 35201
+externalPort = 6800
+
+[[ports]]
+localPort = 39047
+externalPort = 8080
+
+[[ports]]
+localPort = 39889
+externalPort = 3003
+
+[[ports]]
+localPort = 40565
+externalPort = 5173
+
+[[ports]]
+localPort = 40913
+externalPort = 8099
+
+[[ports]]
+localPort = 42317
+externalPort = 3002
+
+[[ports]]
+localPort = 42511
+externalPort = 8008
+
+[[ports]]
+localPort = 42671
+externalPort = 5000
+
+[[ports]]
+localPort = 43983
+externalPort = 4200
+
+[[ports]]
+localPort = 44499
+externalPort = 9000
+
+[[ports]]
+localPort = 45157
+externalPort = 8081
+
+[[ports]]
+localPort = 45993
+externalPort = 3000
+
+[[ports]]
+localPort = 46303
+externalPort = 6000
+
+[[ports]]
+localPort = 46393
+externalPort = 3001
+
+[[ports]]
+localPort = 46781
+externalPort = 8000
+
+[agent]
+integrations = ["web_scraper:1.0.0", "python_database:1.0.0", "python_sendgrid:1.0.0"]
+expertMode = true

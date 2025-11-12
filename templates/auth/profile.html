@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль - InBack.ru{% endblock %}
+
+{% block content %}
+<style>
+/* Hide header in profile */
+header {
+    display: none !important;
+}
+
+/* Adjust body padding since header is hidden */
+body {
+    padding-top: 0 !important;
+}
+</style>
+
+<!-- Include Sidebar Component -->
+{% if sidebar_links is defined and sidebar_links %}
+{% include 'components/sidebar.html' %}
+{% endif %}
+
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 {% if sidebar_links is defined and sidebar_links %}md:ml-[70px]{% endif %} transition-all duration-300">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <!-- Breadcrumbs -->
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                <li><a href="{{ url_for('index') }}" class="hover:text-[#0088CC] transition-colors">Главная</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li><a href="{{ url_for('dashboard') }}" class="hover:text-[#0088CC] transition-colors">Личный кабинет</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li class="text-gray-900 font-semibold">Профиль</li>
+            </ol>
+        </nav>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="flex items-center justify-between p-4 rounded-2xl border-2 {% if category == 'success' %}bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200{% elif category == 'error' %}bg-gradient-to-r from-red-50 to-rose-50 border-red-200{% else %}bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200{% endif %} shadow-sm">
+                            <div class="flex items-center gap-3">
+                                {% if category == 'success' %}
+                                <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-emerald-900 font-medium">{{ message }}</span>
+                                {% elif category == 'error' %}
+                                <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-red-900 font-medium">{{ message }}</span>
+                                {% else %}
+                                <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-blue-900 font-medium">{{ message }}</span>
+                                {% endif %}
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-white/50 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Profile Header -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 border border-gray-100">
+            <div class="relative bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 px-8 py-12">
+                <div class="absolute inset-0 bg-black/10"></div>
+                <div class="relative flex items-center gap-6">
+                    <div class="relative group">
+                        <img id="profile-avatar" 
+                             src="{{ user.profile_image }}" 
+                             alt="Аватар"
+                             data-initials="{{ user.full_name[0].upper() if user.full_name else 'П' }}"
+                             class="avatar w-28 h-28 rounded-2xl object-cover border-4 border-white/40 shadow-xl">
+                        <label for="avatar-upload" class="absolute bottom-1 right-1 bg-white rounded-xl p-2.5 cursor-pointer hover:bg-blue-50 transition-all shadow-lg group-hover:scale-110 duration-200">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </label>
+                        <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(this)">
+                    </div>
+                    <div class="text-white">
+                        <h1 class="text-3xl font-bold mb-2">{{ user.full_name }}</h1>
+                        <div class="flex items-center gap-4 text-white/90">
+                            <p class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                                ID: {{ user.user_id }}
+                            </p>
+                            <span class="w-1 h-1 bg-white/60 rounded-full"></span>
+                            <p>Клиент InBack</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Profile Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-8">Личные данные</h2>
+                    
+                    <form method="POST" action="{{ url_for('profile') }}" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <!-- Full Name -->
+                        <div>
+                            <label for="full_name" class="block text-sm font-semibold text-gray-700 mb-2">
+                                ФИО
+                            </label>
+                            <input type="text" 
+                                   id="full_name" 
+                                   name="full_name" 
+                                   value="{{ user.full_name }}"
+                                   class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                   required>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Email
+                            </label>
+                            <input type="email" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ user.email }}"
+                                   class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                   required>
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Номер телефона
+                            </label>
+                            <input type="tel" 
+                                   id="phone" 
+                                   name="phone" 
+                                   value="{{ user.phone or '' }}"
+                                   placeholder="+7 (___) ___-__-__"
+                                   class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        </div>
+
+                        <!-- Telegram ID -->
+                        <div>
+                            <label for="telegram_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Telegram ID
+                                <span class="text-gray-500 font-normal text-xs ml-1">(для уведомлений)</span>
+                            </label>
+                            <input type="text" 
+                                   id="telegram_id" 
+                                   name="telegram_id" 
+                                   value="{{ user.telegram_id or '' }}"
+                                   placeholder="Например: 123456789"
+                                   class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="mt-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-sm text-blue-900 flex-1">
+                                        <p class="font-semibold mb-2">Как получить Telegram ID?</p>
+                                        <ol class="list-decimal list-inside space-y-1.5 text-xs">
+                                            <li>Откройте Telegram и найдите бота <span class="font-mono bg-blue-100 px-1.5 py-0.5 rounded">@userinfobot</span></li>
+                                            <li>Нажмите START и бот покажет ваш ID</li>
+                                            <li>Скопируйте число (например: 123456789) и вставьте в это поле</li>
+                                        </ol>
+                                        <p class="mt-3 text-blue-800 font-medium flex items-center gap-1.5">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            Получайте уведомления о новых объектах в Telegram!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="border-t-2 border-gray-100 pt-6 mt-8">
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">Смена пароля</h3>
+                            <p class="text-sm text-gray-600">Оставьте поля пустыми, если не хотите менять пароль</p>
+                        </div>
+
+                        <!-- New Password -->
+                        <div>
+                            <label for="new_password" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Новый пароль
+                            </label>
+                            <input type="password" 
+                                   id="new_password" 
+                                   name="new_password" 
+                                   class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                   minlength="6"
+                                   placeholder="Минимум 6 символов">
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Подтвердите новый пароль
+                            </label>
+                            <input type="password" 
+                                   id="confirm_password" 
+                                   name="confirm_password" 
+                                   class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                   minlength="6"
+                                   placeholder="Повторите пароль">
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="flex flex-col sm:flex-row items-center gap-4 pt-6 border-t-2 border-gray-100">
+                            <a href="{{ url_for('dashboard') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                                </svg>
+                                Назад
+                            </a>
+                            <button type="submit" 
+                                    class="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Manager Info -->
+                {% if assigned_manager %}
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 mb-5">Персональный менеджер</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                            <div class="flex-shrink-0" id="managerAvatarContainer">
+                                {% if assigned_manager.profile_image and 'randomuser.me' not in assigned_manager.profile_image %}
+                                    {% if assigned_manager.profile_image.startswith('http') or assigned_manager.profile_image.startswith('/static/') or assigned_manager.profile_image.startswith('/') %}
+                                        {# Absolute URL or path already starting with /static/ or root path #}
+                                        <img src="{{ assigned_manager.profile_image }}" 
+                                             alt="{{ assigned_manager.full_name }}"
+                                             class="avatar w-14 h-14 rounded-xl object-cover border-2 border-white shadow manager-avatar"
+                                             data-initials="{{ assigned_manager.full_name[0].upper() if assigned_manager.full_name else 'М' }}">
+                                    {% else %}
+                                        {# Relative path needs url_for #}
+                                        <img src="{{ url_for('static', filename=assigned_manager.profile_image) }}" 
+                                             alt="{{ assigned_manager.full_name }}"
+                                             class="avatar w-14 h-14 rounded-xl object-cover border-2 border-white shadow manager-avatar"
+                                             data-initials="{{ assigned_manager.full_name[0].upper() if assigned_manager.full_name else 'М' }}">
+                                    {% endif %}
+                                {% else %}
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow">
+                                    {{ assigned_manager.full_name[0].upper() if assigned_manager.full_name else 'М' }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-gray-900 truncate">{{ assigned_manager.full_name }}</p>
+                                <p class="text-xs text-gray-600 truncate">{{ assigned_manager.position or 'Старший менеджер' }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if assigned_manager.phone %}
+                        <a href="tel:{{ assigned_manager.phone }}" class="flex items-center gap-3 p-3 text-sm text-gray-700 hover:bg-blue-50 rounded-xl transition-colors group">
+                            <div class="w-10 h-10 bg-blue-100 group-hover:bg-blue-200 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                            </div>
+                            <span class="font-medium">{{ assigned_manager.phone }}</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if assigned_manager.email %}
+                        <a href="mailto:{{ assigned_manager.email }}" class="flex items-center gap-3 p-3 text-sm text-gray-700 hover:bg-blue-50 rounded-xl transition-colors group">
+                            <div class="w-10 h-10 bg-blue-100 group-hover:bg-blue-200 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <span class="font-medium truncate">{{ assigned_manager.email }}</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-dashed border-blue-300 p-8 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Персональный менеджер</h3>
+                    <p class="text-sm text-gray-600 mb-5">Вам еще не назначен персональный менеджер</p>
+                    <a href="{{ url_for('contacts') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-indigo-700 shadow-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Связаться с нами
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Account Info -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 mb-5">Информация об аккаунте</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <span class="text-sm text-gray-600 font-medium">Дата регистрации</span>
+                            <span class="text-sm font-bold text-gray-900">{{ user.created_at.strftime('%d.%m.%Y') if user.created_at else 'Не указано' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <span class="text-sm text-gray-600 font-medium">Статус</span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold {% if user.is_active %}bg-gradient-to-r from-emerald-500 to-green-600 text-white{% else %}bg-gray-200 text-gray-700{% endif %}">
+                                {% if user.is_active %}
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Активен
+                                {% else %}Неактивен{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <span class="text-sm text-gray-600 font-medium">Источник</span>
+                            <span class="text-sm font-bold text-gray-900">{{ user.registration_source or 'Website' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Phone formatting
+document.getElementById('phone').addEventListener('input', function (e) {
+    let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
+    e.target.value = !x[2] ? x[1] : '+' + x[1] + ' (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
+});
+
+// Password confirmation validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (newPassword && newPassword !== confirmPassword) {
+        e.preventDefault();
+        alert('Пароли не совпадают');
+        return false;
+    }
+});
+
+// Avatar upload function
+function uploadAvatar(input) {
+    if (!input.files || !input.files[0]) {
+        return;
+    }
+    
+    const file = input.files[0];
+    
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Недопустимый формат файла. Разрешены: PNG, JPG, JPEG, GIF, WEBP');
+        input.value = '';
+        return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Размер файла превышает 5MB');
+        input.value = '';
+        return;
+    }
+    
+    // Show loading state
+    const avatar = document.getElementById('profile-avatar');
+    const originalSrc = avatar.src;
+    
+    // Create FormData and upload
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    fetch('{{ url_for("upload_user_avatar") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update avatar image
+            avatar.src = data.avatar_url + '?t=' + new Date().getTime();
+            alert('Аватар успешно обновлен!');
+        } else {
+            alert('Ошибка: ' + data.error);
+            avatar.src = originalSrc;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при загрузке файла');
+        avatar.src = originalSrc;
+    })
+    .finally(() => {
+        input.value = '';
+    });
+}
+
+</script>
+
+<!-- Avatar Fallback Module -->
+<script src="{{ url_for('static', filename='js/avatar.js') }}"></script>
+{% endblock %}
